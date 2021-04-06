@@ -1,6 +1,7 @@
 import React from "react";
 import TaskItem from "./taskList/TaskItem";
 import TaskInput from "./taskList/TaskInput";
+import TaskInputFilter from "./taskList/TaskInputFilter"
 
 
 class TaskList extends React.Component{
@@ -9,6 +10,7 @@ class TaskList extends React.Component{
 
 		this.state = {
 			tasks: props.data,
+			filteredTasks: props.data,
 			filter: 'all'
 		};
 	};
@@ -16,11 +18,15 @@ class TaskList extends React.Component{
 	addTask = task => {
 		const { tasks } = this.state;
 		const tempTasks = [...tasks, {
-			id: tasks.length + 1,
 			title: task,
+			id: tasks.length,
 			done: false
 		}];
-		this.setState({ tasks: tempTasks })
+		this.setState({ tasks: tempTasks,
+			filteredTasks: tempTasks
+
+		 })
+		 
 		
 		console.log(this.state.tasks);
 	};
@@ -30,6 +36,7 @@ class TaskList extends React.Component{
 		if (index !== -1){
 		this.setState(state => {
 			let { tasks } = state;
+		
 			tasks[index].done = true;
 			return tasks;
 		
@@ -46,34 +53,57 @@ class TaskList extends React.Component{
 			delete tasks[index];
 			return tasks;
 		});
+		
 	};
 
-
-	render() {
+	onInputChange = (inputFilterValue ) => {
+		 const { tasks } = this.state;
+		if (inputFilterValue === '') { 
+			this.setState({ filteredTasks: tasks }); 
+		}
+	
+	const filteredTasks = tasks.filter((item) => item.title.toLowerCase().includes(inputFilterValue.toLowerCase()) )
+	this.setState({filteredTasks})
 		
-		const { tasks, filter } = this.state;
-		// const activeTasks = tasks.filter(task => !task.done);
-		// const doneTasks = tasks.filter(task => task.done);
-		let currentTasks = tasks;
+	};
+
+	onButtonClick = (filter) =>{
+		const { tasks } = this.state;
+		
+		let currentTasks = [...tasks]
 		if (filter === 'active'){
-			// currentTasks = tasks.filter(task => !task.done);
 			currentTasks = tasks.filter(task => task.done);
 		}
 		if (filter === 'done'){
-			// currentTasks = tasks.filter(task => task.done);
 			currentTasks = tasks.filter(task => !task.done);
 		}
+		if (filter === 'all'){
+			console.log(tasks);
+			currentTasks = tasks;
+		}
+		
+		this.setState({filteredTasks: currentTasks})
+
+	}
+	
+
+	render() {
+		
+		const { tasks, filteredTasks } = this.state;
+		
+		
+		
 
 	return(
 		<div>
 			<h1 className="top1">Список задач:</h1>
 			<div className="top">
-			<div onClick={()=> this.setState({filter: 'all'})}>Все</div>
-			<div onClick={()=> this.setState({filter: 'active'})}>Выполненные</div>
-			<div onClick={()=> this.setState({filter: 'done'})}>Не выполненные</div>
+			<div onClick={()=> this.onButtonClick('all')}>Все</div>
+			<div onClick={()=> this.onButtonClick('active')}>Выполненные</div>
+			<div onClick={()=> this.onButtonClick('done')}>Не выполненные</div>
 			</div>
 
-			{currentTasks.map(task => (
+			{filteredTasks.map(task => (
 					<TaskItem 
 					doneTask={() => this.doneTask(task.id)}
 					deleteTask={() => this.deleteTask(task.id)}
@@ -82,6 +112,7 @@ class TaskList extends React.Component{
 					 </TaskItem>
 				))}
 				<TaskInput addTask={this.addTask}></TaskInput>
+				<TaskInputFilter onInputChange={this.onInputChange}></TaskInputFilter>
 				<h1 className="top2">Artem Voychenko 	&#169;</h1>
 		</div>
 	)
